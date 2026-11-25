@@ -53,3 +53,30 @@ A node is **not** open when:
 The walker does not follow `$ref`. `#` points back at the root, which has already been walked, and `#/$defs/X` is walked through `$defs`. That is why recursive schemas terminate.
 
 On the output side, a bare `.transform()` is unsupported because its output shape is unknown. Adding `.pipe(<schema>)` makes it inspectable.
+
+## `owned check` (`src/check/`, `src/cli.ts`, `bin/owned.ts`)
+
+```
+ argv ──parseArgs──► check [--json]
+                        │
+                        ▼
+ routes/ (recursive) ──► each file ──► .ts? ──import (OWNED_CHECK=1)──► analyzeRoute
+                                        │              │
+                                        │              └─ throws ──translateLoadError──► rule 16
+                                        └─ not .ts ──analyzeRouteFile──► rule 10
+                        │
+ tsconfig.json + project typescript ──tsc --noEmit──parseTscOutput──► rule 17
+                        │
+                        ▼
+              formatHuman / formatJson ──► exit 0 (no errors) · 1 (errors) · 2 (usage)
+```
+
+| Module | Responsibility |
+|---|---|
+| `cli.ts` | Parses argv once. Sets `OWNED_CHECK=1` so route modules can skip import-time side effects. Maps the outcome to an exit code. |
+| `check/run.ts` | Walks `routes/`, imports each `.ts` file with Node's native type stripping, runs `analyzeRoute`, then the typecheck. Rewrites every path to be relative to the project root. |
+| `check/load-error.ts` | Turns a failed import into a fix: extensionless or `.js` imports → `.ts`, missing package → `npm install`, `enum` → `as const` object, parameter property → constructor assignment, top-level throw → lazy `getDb()`. |
+| `check/typecheck.ts` | Resolves `typescript` from the project (not from `owned`), runs `tsc --noEmit --pretty false`, and parses each diagnostic and its continuation lines. If there is no `tsconfig.json` or no `typescript`, it reports a `typecheck-skipped` warning instead of passing silently. `--noEmit` is always passed, so a check never writes `.js` files. |
+| `check/format.ts` | Human output (errors before warnings, indented fixes, summary line) and the `--json` report (`ok`, counts, routes, violations). |
+
+Warnings don't change the exit code, but `AGENTS.md` tells the agent to finish only at 0 errors **and** 0 warnings, so `unsafe` and a skipped typecheck can't be ignored.
