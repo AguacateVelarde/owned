@@ -1,0 +1,105 @@
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { spawnSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
+
+const bin = fileURLToPath(new URL('../../bin/owned.ts', import.meta.url))
+const fixture = (name: string) => fileURLToPath(new URL(`../fixtures/${name}`, import.meta.url))
+
+function owned(cwd: string, ...args: string[]) {
+  const env = { ...process.env }
+  delete env.OWNED_CHECK
+  const result = spawnSync(process.execPath, [bin, ...args], { cwd, encoding: 'utf8', env })
+  return { code: result.status, stdout: result.stdout, stderr: result.stderr }
+}
+
+interface JsonReport {
+  ok: boolean
+  errors: number
+  warnings: number
+  unsafeCount: number
+  routes: Array<{ file: string; method: string; path: string; shape: string }>
+  violations: Array<{ id: string; file: string; fix: string }>
+}
+
+function checkJson(name: string): { code: number | null; report: JsonReport } {
+  const { code, stdout } = owned(fixture(name), 'check', '--json')
+  return { code, report: JSON.parse(stdout) as JsonReport }
+}
+
+test('a clean project passes with exit 0', () => {
+  const { code, stdout } = owned(fixture('clean'), 'check')
+  assert.equal(code, 0)
+  assert.match(stdout, /✓ 2 routes · 0 errors · 0 warnings · 0 unsafe/)
+})
+
+test('route modules are imported with OWNED_CHECK=1 so they can skip side effects', () => {
+  const { report } = checkJson('clean')
+  assert.deepEqual(report.violations, [])
+  assert.deepEqual(
+    report.routes.map((r) => [r.file, r.method, r.path, r.shape]),
+    [
+      ['orders.get.ts', 'get', '/orders', 'list'],
+      ['products.get.ts', 'get', '/products', 'list'],
+    ],
+  )
+})
+
+test('a broken project fails with exit 1 and reports every problem', () => {
+  const { code, report } = checkJson('broken')
+  assert.equal(code, 1)
+  assert.equal(report.ok, false)
+  const byFile = report.violations.map((v) => [v.file, v.id]).sort()
+  assert.deepEqual(byFile, [
+    ['admin/users.get.ts', 'file-name'],
+    ['health.get.ts', 'module-load'],
+    ['history.get.ts', 'module-load'],
+    ['legacy.get.ts', 'module-load'],
+    ['notes.txt', 'file-name'],
+    ['orders.$id.delete.ts', 'load-required'],
+    ['orders.post.ts', 'owner-from-client'],
+    ['stats.get.ts', 'contract-missing'],
+    ['status.get.ts', 'module-load'],
+    ['users.$id.get.ts', 'sensitive-field'],
+  ])
+})
+
+test('load errors come back as fixes the agent can apply', () => {
+  const { report } = checkJson('broken')
+  const fixFor = (file: string) => report.violations.find((v) => v.file === file)?.fix ?? ''
+  assert.match(fixFor('history.get.ts'), /'\.\.\/db\.ts'/)
+  assert.match(fixFor('status.get.ts'), /as const/)
+  assert.match(fixFor('health.get.ts'), /getDb\(\)/)
+  assert.match(report.violations.find((v) => v.file === 'legacy.get.ts')?.fix ?? '', /getDb\(\)/)
+})
+
+test('human output for a broken project names files under routes/', () => {
+  const { code, stdout } = owned(fixture('broken'), 'check')
+  assert.equal(code, 1)
+  assert.match(stdout, /✗ routes\/orders\.\$id\.delete\.ts {2}\[rule 3 load-required\]/)
+  assert.match(stdout, /8 routes · 10 errors · 0 warnings · 0 unsafe/)
+})
+
+test('a project without routes/ is a usage error with exit 2', () => {
+  const { code, stderr } = owned(fixture('no-routes'), 'check')
+  assert.equal(code, 2)
+  assert.match(stderr, /no routes\/ directory/)
+})
+
+test('an unknown command prints usage with exit 2', () => {
+  const { code, stderr } = owned(fixture('clean'), 'deploy')
+  assert.equal(code, 2)
+  assert.match(stderr, /usage: owned check \[--json\]/)
+})
+
+test('no command prints usage with exit 2', () => {
+  const { code, stderr } = owned(fixture('clean'))
+  assert.equal(code, 2)
+  assert.equal(stderr, 'usage: owned check [--json]\n')
+})
+
+test('an unknown flag prints usage with exit 2', () => {
+  const { code, stderr } = owned(fixture('clean'), 'check', '--yaml')
+  assert.equal(code, 2)
+  assert.match(stderr, /unknown option --yaml/)
+})

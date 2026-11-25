@@ -16,6 +16,7 @@ export const RULES = {
   'unsafe-invalid': { number: 13, severity: 'error', title: 'unsafe uses known keys with real reasons' },
   'unsafe-used': { number: 14, severity: 'warning', title: 'every use of unsafe is reported' },
   'params-mismatch': { number: 15, severity: 'error', title: 'input.params declares exactly the path params' },
+  'module-load': { number: 16, severity: 'error', title: 'route modules load under Node type stripping without side effects' },
 } as const satisfies Record<string, { number: number; severity: Severity; title: string }>
 
 export type RuleId = keyof typeof RULES
