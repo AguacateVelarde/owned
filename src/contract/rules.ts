@@ -17,6 +17,8 @@ export const RULES = {
   'unsafe-used': { number: 14, severity: 'warning', title: 'every use of unsafe is reported' },
   'params-mismatch': { number: 15, severity: 'error', title: 'input.params declares exactly the path params' },
   'module-load': { number: 16, severity: 'error', title: 'route modules load under Node type stripping without side effects' },
+  'typecheck': { number: 17, severity: 'error', title: 'the project typechecks with tsc --noEmit' },
+  'typecheck-skipped': { number: 17, severity: 'warning', title: 'tsc could not run, so type errors were not checked' },
 } as const satisfies Record<string, { number: number; severity: Severity; title: string }>
 
 export type RuleId = keyof typeof RULES

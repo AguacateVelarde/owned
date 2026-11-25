@@ -10,7 +10,7 @@ export interface LoadFailure {
 const MISSING_MODULE = /Cannot find module '([^']+)'/
 const MISSING_PACKAGE = /Cannot find package '([^']+)'/
 
-const ENUM_FIX = `const Status = { Open: 'open', Closed: 'closed' } as const
+export const ENUM_FIX = `const Status = { Open: 'open', Closed: 'closed' } as const
 type Status = (typeof Status)[keyof typeof Status]`
 
 const PARAMETER_PROPERTY_FIX = `class Example {

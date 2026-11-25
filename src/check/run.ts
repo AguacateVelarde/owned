@@ -6,6 +6,7 @@ import { analyzeRoute, analyzeRouteFile } from '../contract/analyze.ts'
 import type { Violation } from '../contract/rules.ts'
 import type { CheckResult, RouteSummary } from './format.ts'
 import { translateLoadError, type LoadFailure } from './load-error.ts'
+import { runTypecheck } from './typecheck.ts'
 
 export type CheckOutcome = { kind: 'no-routes'; routesDir: string } | { kind: 'checked'; result: CheckResult }
 
@@ -68,5 +69,6 @@ export async function runCheck(root: string): Promise<CheckOutcome> {
     if (checked.summary !== undefined) routes.push(checked.summary)
     violations.push(...checked.violations)
   }
+  violations.push(...(await runTypecheck(root)))
   return { kind: 'checked', result: { routes, violations } }
 }

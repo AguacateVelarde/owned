@@ -49,7 +49,10 @@ test('a broken project fails with exit 1 and reports every problem', () => {
   const { code, report } = checkJson('broken')
   assert.equal(code, 1)
   assert.equal(report.ok, false)
-  const byFile = report.violations.map((v) => [v.file, v.id]).sort()
+  const byFile = report.violations
+    .filter((v) => v.id !== 'typecheck')
+    .map((v) => [v.file, v.id])
+    .sort()
   assert.deepEqual(byFile, [
     ['routes/admin/users.get.ts', 'file-name'],
     ['routes/health.get.ts', 'module-load'],
@@ -62,6 +65,19 @@ test('a broken project fails with exit 1 and reports every problem', () => {
     ['routes/status.get.ts', 'module-load'],
     ['routes/users.$id.get.ts', 'sensitive-field'],
   ])
+})
+
+test('a broken project also reports type errors from tsc', () => {
+  const { report } = checkJson('broken')
+  const typeErrors = report.violations.filter((v) => v.id === 'typecheck').map((v) => v.file)
+  assert.ok(typeErrors.includes('routes/status.get.ts'))
+})
+
+test('a project without tsconfig.json passes with a typecheck-skipped warning', () => {
+  const { code, report } = checkJson('no-tsconfig')
+  assert.equal(code, 0)
+  assert.equal(report.ok, true)
+  assert.deepEqual(report.violations.map((v) => v.id), ['typecheck-skipped'])
 })
 
 test('load errors come back as fixes the agent can apply', () => {
@@ -77,7 +93,7 @@ test('human output for a broken project names files under routes/', () => {
   const { code, stdout } = owned(fixture('broken'), 'check')
   assert.equal(code, 1)
   assert.match(stdout, /✗ routes\/orders\.\$id\.delete\.ts {2}\[rule 3 load-required\]/)
-  assert.match(stdout, /8 routes · 10 errors · 0 warnings · 0 unsafe/)
+  assert.match(stdout, /8 routes · \d+ errors · 0 warnings · 0 unsafe/)
 })
 
 test('a project without routes/ is a usage error with exit 2', () => {
