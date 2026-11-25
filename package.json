@@ -1,0 +1,9 @@
+{
+  "name": "owned",
+  "version": "0.0.0",
+  "description": "Secure-by-default API framework that AI agents can't get wrong",
+  "keywords": ["api", "framework", "security", "hono", "ai-agents", "authorization"],
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/AguacateVelarde/owned.git" },
+  "files": ["README.md"]
+}
