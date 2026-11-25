@@ -37,14 +37,26 @@ function runChecks(ctx: Omit<RuleContext, 'schemas'>): Violation[] {
   return CHECKS.flatMap((check) => check(withSchemas))
 }
 
-export function analyzeRoute(file: string, def: unknown): RouteAnalysis {
-  const parsedFile = parseRouteFile(file)
-  const route = parsedFile.ok ? parsedFile.route : undefined
-  const shape = route === undefined ? undefined : classifyShape(route)
-  const fileViolations = parsedFile.ok
-    ? []
-    : [violation('file-name', file, `invalid route file name: ${parsedFile.reason}`, VALID_PATTERNS.join('\n'))]
+export interface RouteFileAnalysis {
+  route: ParsedRouteFile | undefined
+  shape: RouteShape | undefined
+  violations: Violation[]
+}
 
+export function analyzeRouteFile(file: string): RouteFileAnalysis {
+  const parsedFile = parseRouteFile(file)
+  if (!parsedFile.ok) {
+    return {
+      route: undefined,
+      shape: undefined,
+      violations: [violation('file-name', file, `invalid route file name: ${parsedFile.reason}`, VALID_PATTERNS.join('\n'))],
+    }
+  }
+  return { route: parsedFile.route, shape: classifyShape(parsedFile.route), violations: [] }
+}
+
+export function analyzeRoute(file: string, def: unknown): RouteAnalysis {
+  const { route, shape, violations: fileViolations } = analyzeRouteFile(file)
   const { contract, violations: contractViolations } = parseContract(file, def)
   const ruleViolations = contract === undefined ? [] : runChecks({ file, route, shape, contract })
 
