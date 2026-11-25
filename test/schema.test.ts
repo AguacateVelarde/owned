@@ -104,6 +104,13 @@ test('input side: plain z.object is fine (Zod strips extra keys), loose is open'
   ])
 })
 
+test('boolean schemas: true accepts anything, false rejects everything', () => {
+  assert.deepEqual(findSchemaIssues(true), [{ kind: 'open', path: '' }])
+  assert.deepEqual(findSchemaIssues(false), [])
+  assert.deepEqual(findSchemaIssues({ type: 'array', items: true }), [{ kind: 'open', path: '[]' }])
+  assert.deepEqual(findSchemaIssues({ type: 'array', items: false }), [])
+})
+
 test('listFieldPaths returns nested property paths', () => {
   const schema = z.object({
     id: z.string(),
