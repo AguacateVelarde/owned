@@ -2,8 +2,36 @@
   "name": "owned",
   "version": "0.0.0",
   "description": "Secure-by-default API framework that AI agents can't get wrong",
-  "keywords": ["api", "framework", "security", "hono", "ai-agents", "authorization"],
+  "keywords": [
+    "api",
+    "framework",
+    "security",
+    "hono",
+    "ai-agents",
+    "authorization"
+  ],
   "license": "MIT",
-  "repository": { "type": "git", "url": "git+https://github.com/AguacateVelarde/owned.git" },
-  "files": ["README.md"]
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AguacateVelarde/owned.git"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "files": [
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test \"test/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.7",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "hono": "^4.13.22",
+    "zod": "^4.6.7"
+  }
 }
