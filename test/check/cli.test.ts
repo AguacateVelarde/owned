@@ -39,8 +39,8 @@ test('route modules are imported with OWNED_CHECK=1 so they can skip side effect
   assert.deepEqual(
     report.routes.map((r) => [r.file, r.method, r.path, r.shape]),
     [
-      ['orders.get.ts', 'get', '/orders', 'list'],
-      ['products.get.ts', 'get', '/products', 'list'],
+      ['routes/orders.get.ts', 'get', '/orders', 'list'],
+      ['routes/products.get.ts', 'get', '/products', 'list'],
     ],
   )
 })
@@ -51,26 +51,26 @@ test('a broken project fails with exit 1 and reports every problem', () => {
   assert.equal(report.ok, false)
   const byFile = report.violations.map((v) => [v.file, v.id]).sort()
   assert.deepEqual(byFile, [
-    ['admin/users.get.ts', 'file-name'],
-    ['health.get.ts', 'module-load'],
-    ['history.get.ts', 'module-load'],
-    ['legacy.get.ts', 'module-load'],
-    ['notes.txt', 'file-name'],
-    ['orders.$id.delete.ts', 'load-required'],
-    ['orders.post.ts', 'owner-from-client'],
-    ['stats.get.ts', 'contract-missing'],
-    ['status.get.ts', 'module-load'],
-    ['users.$id.get.ts', 'sensitive-field'],
+    ['routes/admin/users.get.ts', 'file-name'],
+    ['routes/health.get.ts', 'module-load'],
+    ['routes/history.get.ts', 'module-load'],
+    ['routes/legacy.get.ts', 'module-load'],
+    ['routes/notes.txt', 'file-name'],
+    ['routes/orders.$id.delete.ts', 'load-required'],
+    ['routes/orders.post.ts', 'owner-from-client'],
+    ['routes/stats.get.ts', 'contract-missing'],
+    ['routes/status.get.ts', 'module-load'],
+    ['routes/users.$id.get.ts', 'sensitive-field'],
   ])
 })
 
 test('load errors come back as fixes the agent can apply', () => {
   const { report } = checkJson('broken')
   const fixFor = (file: string) => report.violations.find((v) => v.file === file)?.fix ?? ''
-  assert.match(fixFor('history.get.ts'), /'\.\.\/db\.ts'/)
-  assert.match(fixFor('status.get.ts'), /as const/)
-  assert.match(fixFor('health.get.ts'), /getDb\(\)/)
-  assert.match(report.violations.find((v) => v.file === 'legacy.get.ts')?.fix ?? '', /getDb\(\)/)
+  assert.match(fixFor('routes/history.get.ts'), /'\.\.\/db\.ts'/)
+  assert.match(fixFor('routes/status.get.ts'), /as const/)
+  assert.match(fixFor('routes/health.get.ts'), /getDb\(\)/)
+  assert.match(report.violations.find((v) => v.file === 'routes/legacy.get.ts')?.fix ?? '', /getDb\(\)/)
 })
 
 test('human output for a broken project names files under routes/', () => {

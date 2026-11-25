@@ -38,11 +38,15 @@ async function loadDefaultExport(path: string): Promise<Loaded> {
 
 async function checkFile(root: string, routesDir: string, file: string): Promise<{ summary?: RouteSummary; violations: Violation[] }> {
   const fileAnalysis = analyzeRouteFile(file)
+  const location = `routes/${file}`
   const summary =
     fileAnalysis.route === undefined || fileAnalysis.shape === undefined
       ? undefined
-      : { file, method: fileAnalysis.route.method, path: fileAnalysis.route.path, shape: fileAnalysis.shape }
-  const withSummary = (violations: Violation[]) => (summary === undefined ? { violations } : { summary, violations })
+      : { file: location, method: fileAnalysis.route.method, path: fileAnalysis.route.path, shape: fileAnalysis.shape }
+  const withSummary = (found: Violation[]) => {
+    const violations = found.map((v) => ({ ...v, file: location }))
+    return summary === undefined ? { violations } : { summary, violations }
+  }
 
   if (!file.endsWith('.ts')) return withSummary(fileAnalysis.violations)
 

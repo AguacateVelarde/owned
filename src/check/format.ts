@@ -47,7 +47,7 @@ function indent(text: string, spaces: number): string {
 
 function formatViolation(v: Violation): string {
   const mark = v.severity === 'error' ? '✗' : '⚠'
-  return [`${mark} routes/${v.file}  [rule ${v.rule} ${v.id}]`, indent(v.message, 2), '  fix:', indent(v.fix, 4)].join('\n')
+  return [`${mark} ${v.file}  [rule ${v.rule} ${v.id}]`, indent(v.message, 2), '  fix:', indent(v.fix, 4)].join('\n')
 }
 
 export function formatHuman(result: CheckResult): string {

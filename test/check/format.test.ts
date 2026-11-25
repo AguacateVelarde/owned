@@ -7,7 +7,7 @@ const error: Violation = {
   rule: 3,
   id: 'load-required',
   severity: 'error',
-  file: 'orders.$id.delete.ts',
+  file: 'routes/orders.$id.delete.ts',
   message: '/orders/:id acts on one resource; load it',
   fix: 'load: ({ params }) => getDb().orders.find(params.id),\nowner: \'userId\',',
 }
@@ -15,13 +15,13 @@ const warning: Violation = {
   rule: 14,
   id: 'unsafe-used',
   severity: 'warning',
-  file: 'stats.get.ts',
+  file: 'routes/stats.get.ts',
   message: 'unsafe.noOwner: "aggregate metrics, no per-user data"',
   fix: 'remove it unless the human asked for this exception',
 }
 const routes = [
-  { file: 'orders.$id.delete.ts', method: 'delete', path: '/orders/:id', shape: 'resource' },
-  { file: 'stats.get.ts', method: 'get', path: '/stats', shape: 'list' },
+  { file: 'routes/orders.$id.delete.ts', method: 'delete', path: '/orders/:id', shape: 'resource' },
+  { file: 'routes/stats.get.ts', method: 'get', path: '/stats', shape: 'list' },
 ] as const
 
 test('summarize counts errors, warnings and unsafe uses', () => {
@@ -77,4 +77,10 @@ test('blank lines inside a fix stay blank instead of becoming trailing spaces', 
   const withBlank: Violation = { ...error, fix: "owner: 'userId',\n\nor:\nunsafe: { noOwner: '...' }," }
   const out = formatHuman({ routes: [...routes], violations: [withBlank] })
   assert.match(out, / {4}owner: 'userId',\n\n {4}or:\n/)
+})
+
+test('human output shows files outside routes/ as they are', () => {
+  const outside: Violation = { ...error, file: 'db.ts', rule: 16, id: 'module-load' }
+  const out = formatHuman({ routes: [...routes], violations: [outside] })
+  assert.match(out, /✗ db\.ts {2}\[rule 16 module-load\]/)
 })
