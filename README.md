@@ -6,7 +6,7 @@
 
 Every route declares a **contract**: who can call it, what it accepts, what it returns, and which field says who owns the data. `owned` checks that contract before the code runs and (soon) enforces it at runtime. Insecure routes are hard to write and easy to spot, even when neither the human nor the agent knows anything about security.
 
-> **Status: in development (v0).** `owned init` and `owned check` work today. The runtime (`owned dev`, `owned start`) and `owned audit` are next. The package name is reserved on npm, but nothing usable is published yet. See [Status](#status).
+> **Status: in development (v0).** `owned init` and `owned check` work today. The runtime (`owned dev`, `owned start`) and `owned audit` are next. The package name is reserved on npm, but nothing usable is published yet. See [Status](#status), and [How owned works when v1 is finished](docs/HOW-IT-WORKS.md) for the full target design.
 
 ---
 
@@ -346,7 +346,7 @@ test/                 unit, type, CLI end-to-end tests and fixture projects
 docs/                 ARCHITECTURE.md, GLOSSARY.md
 ```
 
-Conventions: tests come first, the code has no comments (the reasoning lives in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)), every violation ships with a fix, and coverage stays at 100% of lines. Domain terms are defined in [docs/GLOSSARY.md](docs/GLOSSARY.md).
+The target behavior for v1 is in [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md). Conventions: tests come first, the code has no comments (the reasoning lives in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)), every violation ships with a fix, and coverage stays at 100% of lines. Domain terms are defined in [docs/GLOSSARY.md](docs/GLOSSARY.md).
 
 ## License
 
