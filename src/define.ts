@@ -13,6 +13,8 @@ type UserFor<A extends Auth> = A extends 'public' ? AuthUser | undefined : AuthU
 
 type MaybePromise<T> = T | Promise<T>
 
+type LoadedResource<R> = [R] extends [undefined] ? undefined : NonNullable<Awaited<R>>
+
 export interface HandlerArgs<A extends Auth, P, Q, B, R> {
   input: { params: Parsed<P>; query: Parsed<Q>; body: Parsed<B> }
   resource: R
@@ -34,7 +36,7 @@ export interface RouteConfig<
   load?: (args: { params: Parsed<P> }) => MaybePromise<R>
   rateLimit?: RateLimit
   unsafe?: Unsafe
-  handler: (args: HandlerArgs<A, P, Q, B, Awaited<R>>) => MaybePromise<z.input<O>>
+  handler: (args: HandlerArgs<A, P, Q, B, LoadedResource<R>>) => MaybePromise<z.input<O>>
 }
 
 export function defineRoute<

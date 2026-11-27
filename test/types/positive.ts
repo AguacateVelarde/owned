@@ -64,3 +64,33 @@ export const config = defineConfig({
     return id === undefined ? null : { id, role: c.req.header('x-user-role') ?? 'user' }
   },
 })
+
+interface Note {
+  id: string
+  userId: string
+}
+const notes = new Map<string, Note>()
+
+export const nullableLoadRoute = defineRoute({
+  auth: 'user',
+  input: { params: z.object({ id: z.string() }) },
+  load: ({ params }): Note | null => notes.get(params.id) ?? null,
+  owner: 'userId',
+  output: z.object({ id: z.string() }),
+  handler: ({ resource }) => {
+    expectType<Equal<typeof resource, Note>>(true)
+    return { id: resource.id }
+  },
+})
+
+export const optionalLoadRoute = defineRoute({
+  auth: 'user',
+  input: { params: z.object({ id: z.string() }) },
+  load: async ({ params }) => notes.get(params.id),
+  owner: 'userId',
+  output: z.object({ id: z.string() }),
+  handler: ({ resource }) => {
+    expectType<Equal<typeof resource, Note>>(true)
+    return { id: resource.id }
+  },
+})
