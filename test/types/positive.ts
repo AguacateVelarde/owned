@@ -94,3 +94,19 @@ export const optionalLoadRoute = defineRoute({
     return { id: resource.id }
   },
 })
+
+export const literalOutputRoute = defineRoute({
+  auth: 'public',
+  input: {},
+  output: z.object({ ok: z.literal(true), status: z.enum(['open', 'closed']) }),
+  handler: () => ({ ok: true, status: 'open' }),
+})
+
+export const literalOutputAsyncRoute = defineRoute({
+  auth: 'user',
+  input: { params: z.object({ id: z.string() }) },
+  load: ({ params }) => notes.get(params.id),
+  owner: 'userId',
+  output: z.object({ ok: z.literal(true) }),
+  handler: async () => ({ ok: true }),
+})

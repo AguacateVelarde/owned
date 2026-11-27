@@ -22,7 +22,7 @@ export interface HandlerArgs<A extends Auth, P, Q, B, R> {
 }
 
 export interface RouteConfig<
-  O extends ZodType,
+  I,
   A extends Auth,
   P extends ZodType | undefined,
   Q extends ZodType | undefined,
@@ -31,22 +31,22 @@ export interface RouteConfig<
 > {
   auth: A
   input: { params?: P; query?: Q; body?: B }
-  output: O
+  output: ZodType<unknown, I>
   owner?: string
   load?: (args: { params: Parsed<P> }) => MaybePromise<R>
   rateLimit?: RateLimit
   unsafe?: Unsafe
-  handler: (args: HandlerArgs<A, P, Q, B, LoadedResource<R>>) => MaybePromise<z.input<O>>
+  handler: (args: HandlerArgs<A, P, Q, B, LoadedResource<R>>) => MaybePromise<I>
 }
 
 export function defineRoute<
-  O extends ZodType,
+  I,
   A extends Auth,
   P extends ZodType | undefined = undefined,
   Q extends ZodType | undefined = undefined,
   B extends ZodType | undefined = undefined,
   R = undefined,
->(route: RouteConfig<O, A, P, Q, B, R>): RouteConfig<O, A, P, Q, B, R> {
+>(route: RouteConfig<I, A, P, Q, B, R>): RouteConfig<I, A, P, Q, B, R> {
   return route
 }
 
