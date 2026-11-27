@@ -80,3 +80,28 @@ On the output side, a bare `.transform()` is unsupported because its output shap
 | `check/format.ts` | Human output (errors before warnings, indented fixes, summary line) and the `--json` report (`ok`, counts, routes, violations). |
 
 Warnings don't change the exit code, but `AGENTS.md` tells the agent to finish only at 0 errors **and** 0 warnings, so `unsafe` and a skipped typecheck can't be ignored.
+
+## Public API (`src/index.ts`, `src/define.ts`)
+
+`import { defineRoute, defineConfig, z } from 'owned'`. At runtime, `defineRoute` and `defineConfig` return what they're given. All the value is in the types:
+
+| Inferred | From | Why |
+|---|---|---|
+| `A` (auth level) | `auth` as a literal | `user` is `AuthUser` on `user` and `admin` routes, `AuthUser \| undefined` on `public` routes. |
+| `P`, `Q`, `B` | `input.params`, `input.query`, `input.body` | The handler gets parsed, typed input. Missing keys are `undefined`. |
+| `R` | `load`'s return value | `resource` drops `null` and `undefined`, because the runtime answers 404 before the handler runs. Otherwise agents would write `resource!`. |
+| `I` | `output: ZodType<unknown, I>` | The handler returns `I`. Typing the return as `z.input<O>` widened literals (`true` became `boolean`) while `O` was still being inferred, so the generic is the input type itself. |
+
+`load` receives only `{ params }`, never the user. Because it can't see who is asking, it can't fabricate a resource that passes the owner check.
+
+Type behavior is pinned by `test/types.test.ts`. It compiles `test/types/positive.ts`, and asserts that each file in `test/types/negative/` fails with a specific TS error code. This is done without `@ts-expect-error`, because the codebase has no comments.
+
+## `owned init` (`src/init/`)
+
+| Module | Responsibility |
+|---|---|
+| `templates.ts` | Pure data: the generated project files and the four route templates (public, list, create, resource). |
+| `agents-md.ts` | Renders `AGENTS.md` from `RULES`, `VALID_PATTERNS` and the route templates, so the instructions can't drift from what `owned check` enforces. |
+| `write.ts` | Writes each file with flag `wx`. Existing files are skipped and never overwritten, so running `init` twice ends in the same state. |
+
+The generated `owned.config.ts` authenticates from `x-user-id` and `x-user-role` only when `NODE_ENV=test`, and returns `null` otherwise. The safe default is that nobody is logged in until real authentication is written. The end-to-end test generates a project, adds every `AGENTS.md` template as a route, and requires `owned check` (including `tsc`) to report 0 errors and 0 warnings.
