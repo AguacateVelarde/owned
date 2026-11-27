@@ -4,7 +4,7 @@ import type { RouteTemplate } from './templates.ts'
 
 const FENCE = '```'
 
-function rulesTable(): string {
+export function rulesTable(): string {
   const rows = Object.entries(RULES).map(([id, rule]) => `| ${rule.number} | \`${id}\` | ${rule.severity} | ${rule.title} |`)
   return ['| # | id | severity | rule |', '|---|---|---|---|', ...rows].join('\n')
 }
