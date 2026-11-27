@@ -16,6 +16,12 @@
     "url": "git+https://github.com/AguacateVelarde/owned.git"
   },
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "bin": {
+    "owned": "./bin/owned.ts"
+  },
   "engines": {
     "node": ">=22.18"
   },

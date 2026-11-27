@@ -25,6 +25,7 @@
     "bin"
   ],
   "exclude": [
-    "test/fixtures"
+    "test/fixtures",
+    "test/types/negative"
   ]
 }

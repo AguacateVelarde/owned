@@ -22,14 +22,3 @@ export interface RateLimit {
   max: number
   windowSec: number
 }
-
-export interface RouteDefinition {
-  auth: Auth
-  input: RouteInput
-  output: ZodType
-  owner?: string
-  load?: (args: { params: unknown }) => unknown
-  rateLimit?: RateLimit
-  unsafe?: Unsafe
-  handler: (...args: never[]) => unknown
-}
