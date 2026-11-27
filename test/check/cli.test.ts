@@ -105,13 +105,13 @@ test('a project without routes/ is a usage error with exit 2', () => {
 test('an unknown command prints usage with exit 2', () => {
   const { code, stderr } = owned(fixture('clean'), 'deploy')
   assert.equal(code, 2)
-  assert.match(stderr, /usage: owned check \[--json\]/)
+  assert.match(stderr, /unknown command deploy\nusage: owned init\n {7}owned check \[--json\]/)
 })
 
 test('no command prints usage with exit 2', () => {
   const { code, stderr } = owned(fixture('clean'))
   assert.equal(code, 2)
-  assert.equal(stderr, 'usage: owned check [--json]\n')
+  assert.equal(stderr, 'usage: owned init\n       owned check [--json]\n')
 })
 
 test('an unknown flag prints usage with exit 2', () => {
