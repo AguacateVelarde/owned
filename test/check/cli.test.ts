@@ -96,6 +96,13 @@ test('human output for a broken project names files under routes/', () => {
   assert.match(stdout, /8 routes · \d+ errors · 0 warnings · 0 unsafe/)
 })
 
+test('the bin runs as an executable, the way npx starts it', () => {
+  const result = spawnSync(bin, ['check'], { cwd: fixture('clean'), encoding: 'utf8' })
+  assert.equal(result.error, undefined)
+  assert.equal(result.status, 0, result.stderr)
+  assert.match(result.stdout, /✓ 2 routes/)
+})
+
 test('a project without routes/ is a usage error with exit 2', () => {
   const { code, stderr } = owned(fixture('no-routes'), 'check')
   assert.equal(code, 2)
