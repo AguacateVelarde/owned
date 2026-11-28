@@ -1,11 +1,13 @@
 import type { Violation } from '../contract/rules.ts'
-import type { Method, RouteShape } from '../types.ts'
+import type { Auth, Method, RouteShape } from '../types.ts'
 
 export interface RouteSummary {
   file: string
   method: Method
   path: string
   shape: RouteShape
+  auth: Auth | null
+  owner: string | null
 }
 
 export interface CheckResult {

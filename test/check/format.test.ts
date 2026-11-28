@@ -20,8 +20,8 @@ const warning: Violation = {
   fix: 'remove it unless the human asked for this exception',
 }
 const routes = [
-  { file: 'routes/orders.$id.delete.ts', method: 'delete', path: '/orders/:id', shape: 'resource' },
-  { file: 'routes/stats.get.ts', method: 'get', path: '/stats', shape: 'list' },
+  { file: 'routes/orders.$id.delete.ts', method: 'delete', path: '/orders/:id', shape: 'resource', auth: 'user', owner: 'userId' },
+  { file: 'routes/stats.get.ts', method: 'get', path: '/stats', shape: 'list', auth: 'user', owner: null },
 ] as const
 
 test('summarize counts errors, warnings and unsafe uses', () => {

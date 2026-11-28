@@ -18,7 +18,7 @@ interface JsonReport {
   errors: number
   warnings: number
   unsafeCount: number
-  routes: Array<{ file: string; method: string; path: string; shape: string }>
+  routes: Array<{ file: string; method: string; path: string; shape: string; auth: string | null; owner: string | null }>
   violations: Array<{ id: string; file: string; fix: string }>
 }
 
@@ -37,10 +37,10 @@ test('route modules are imported with OWNED_CHECK=1 so they can skip side effect
   const { report } = checkJson('clean')
   assert.deepEqual(report.violations, [])
   assert.deepEqual(
-    report.routes.map((r) => [r.file, r.method, r.path, r.shape]),
+    report.routes.map((r) => [r.file, r.method, r.path, r.shape, r.auth, r.owner]),
     [
-      ['routes/orders.get.ts', 'get', '/orders', 'list'],
-      ['routes/products.get.ts', 'get', '/products', 'list'],
+      ['routes/orders.get.ts', 'get', '/orders', 'list', 'user', 'userId'],
+      ['routes/products.get.ts', 'get', '/products', 'list', 'public', null],
     ],
   )
 })
@@ -65,6 +65,12 @@ test('a broken project fails with exit 1 and reports every problem', () => {
     ['routes/status.get.ts', 'module-load'],
     ['routes/users.$id.get.ts', 'sensitive-field'],
   ])
+})
+
+test('a route that fails to load has unknown auth and owner', () => {
+  const { report } = checkJson('broken')
+  const health = report.routes.find((r) => r.file === 'routes/health.get.ts')
+  assert.deepEqual([health?.auth, health?.owner], [null, null])
 })
 
 test('a broken project also reports type errors from tsc', () => {

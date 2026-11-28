@@ -75,6 +75,26 @@ describe('valid contracts', () => {
   }
 })
 
+describe('the analysis reports the declared auth and owner', () => {
+  test('a user route with an owner', () => {
+    const result = analyzeRoute('orders.get.ts', validRoutes['orders.get.ts'])
+    assert.equal(result.auth, 'user')
+    assert.equal(result.owner, 'userId')
+  })
+
+  test('a public route has no owner', () => {
+    const result = analyzeRoute('products.get.ts', validRoutes['products.get.ts'])
+    assert.equal(result.auth, 'public')
+    assert.equal(result.owner, undefined)
+  })
+
+  test('nothing is reported when the contract cannot be parsed', () => {
+    const result = analyzeRoute('orders.get.ts', undefined)
+    assert.equal(result.auth, undefined)
+    assert.equal(result.owner, undefined)
+  })
+})
+
 describe('route shape is decided by method and path', () => {
   const cases: Array<[string, string]> = [
     ['orders.$id.delete.ts', 'resource'],

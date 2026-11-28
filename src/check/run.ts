@@ -4,6 +4,7 @@ import { join, relative } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { analyzeRoute, analyzeRouteFile } from '../contract/analyze.ts'
 import type { Violation } from '../contract/rules.ts'
+import type { Auth } from '../types.ts'
 import type { CheckResult, RouteSummary } from './format.ts'
 import { translateLoadError, type LoadFailure } from './load-error.ts'
 import { runTypecheck } from './typecheck.ts'
@@ -37,25 +38,39 @@ async function loadDefaultExport(path: string): Promise<Loaded> {
   }
 }
 
+interface Declared {
+  auth: Auth | undefined
+  owner: string | undefined
+}
+
+const UNKNOWN: Declared = { auth: undefined, owner: undefined }
+
 async function checkFile(root: string, routesDir: string, file: string): Promise<{ summary?: RouteSummary; violations: Violation[] }> {
   const fileAnalysis = analyzeRouteFile(file)
   const location = `routes/${file}`
-  const summary =
-    fileAnalysis.route === undefined || fileAnalysis.shape === undefined
-      ? undefined
-      : { file: location, method: fileAnalysis.route.method, path: fileAnalysis.route.path, shape: fileAnalysis.shape }
-  const withSummary = (found: Violation[]) => {
+  const report = (found: Violation[], declared: Declared) => {
     const violations = found.map((v) => ({ ...v, file: location }))
-    return summary === undefined ? { violations } : { summary, violations }
+    const { route, shape } = fileAnalysis
+    if (route === undefined || shape === undefined) return { violations }
+    const summary: RouteSummary = {
+      file: location,
+      method: route.method,
+      path: route.path,
+      shape,
+      auth: declared.auth ?? null,
+      owner: declared.owner ?? null,
+    }
+    return { summary, violations }
   }
 
-  if (!file.endsWith('.ts')) return withSummary(fileAnalysis.violations)
+  if (!file.endsWith('.ts')) return report(fileAnalysis.violations, UNKNOWN)
 
   const loaded = await loadDefaultExport(join(routesDir, file))
   if (!loaded.ok) {
-    return withSummary([...fileAnalysis.violations, translateLoadError(root, file, loaded.failure, existsSync)])
+    return report([...fileAnalysis.violations, translateLoadError(root, file, loaded.failure, existsSync)], UNKNOWN)
   }
-  return withSummary(analyzeRoute(file, loaded.def).violations)
+  const analysis = analyzeRoute(file, loaded.def)
+  return report(analysis.violations, analysis)
 }
 
 export async function runCheck(root: string): Promise<CheckOutcome> {

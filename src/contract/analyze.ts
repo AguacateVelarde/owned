@@ -1,4 +1,4 @@
-import type { RouteShape } from '../types.ts'
+import type { Auth, RouteShape } from '../types.ts'
 import { CHECKS, type RouteSchemas, type RuleContext } from './checks.ts'
 import { parseContract, type Contract } from './contract.ts'
 import { parseRouteFile, VALID_PATTERNS, type ParsedRouteFile } from './route-file.ts'
@@ -9,6 +9,8 @@ export interface RouteAnalysis {
   file: string
   route: ParsedRouteFile | undefined
   shape: RouteShape | undefined
+  auth: Auth | undefined
+  owner: string | undefined
   violations: Violation[]
   unsafeCount: number
 }
@@ -65,6 +67,8 @@ export function analyzeRoute(file: string, def: unknown): RouteAnalysis {
     file,
     route,
     shape,
+    auth: contract?.auth,
+    owner: contract?.owner,
     violations,
     unsafeCount: violations.filter((v) => v.id === 'unsafe-used').length,
   }
