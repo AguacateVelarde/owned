@@ -310,7 +310,8 @@ This table is generated from the same source as the checker, and a test fails if
 | `owned check` (native loading, Node error translation, `tsc`, `--json`) | ✅ done |
 | Typed `defineRoute` / `defineConfig` | ✅ done |
 | `owned init` + generated `AGENTS.md` | ✅ done |
-| Agent eval: Claude Code builds a CRUD from `AGENTS.md` alone, scored by hidden ownership tests and compared against plain Hono | ⏳ next. This gates the release. |
+| Agent compliance eval (`npm run eval`): Claude Code builds a comments CRUD from `AGENTS.md` alone, scored on `owned check`, `auth`/`owner` per route and untouched protected files | ✅ harness done · ⏳ first real run |
+| Hidden HTTP ownership tests + plain-Hono baseline in the same eval | ⏳ needs the runtime. This gates the release. |
 | Runtime pipeline on Hono (auth → input → load → owner → handler → strip), file-based loader | ⏳ planned |
 | `owned dev` / `owned start` (refuse to boot when the check fails) | ⏳ planned |
 | `owned audit`: a security report a human can read in 10 seconds | ⏳ planned |
@@ -332,6 +333,8 @@ Later (v2): `owned attack` (two synthetic users try to reach each other's data),
 npm install
 npm test            # node:test, TypeScript run natively
 npm run typecheck   # tsc --noEmit
+npm run eval        # agent eval (spends tokens: see docs/ARCHITECTURE.md)
+npm run eval -- --fake test/fixtures/eval-solutions/good   # same harness, no tokens
 ```
 
 ```
@@ -342,6 +345,7 @@ src/cli.ts            argv parsing and commands
 src/contract/         analyzeRoute: route-file parsing, contract parsing, rules, schema inspection
 src/check/            owned check: loading, error translation, tsc, output
 src/init/             owned init: templates, AGENTS.md, file writing
+evals/                agent eval harness (npm run eval)
 test/                 unit, type, CLI end-to-end tests and fixture projects
 docs/                 ARCHITECTURE.md, GLOSSARY.md
 ```

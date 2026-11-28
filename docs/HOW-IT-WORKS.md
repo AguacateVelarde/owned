@@ -188,6 +188,15 @@ Unit tests prove the checker and the runtime do what this page says. They don't 
 
 **Release gate:** at least 2 of 3 runs pass with `owned`, **and** `owned` leaks less IDOR than the baseline. Three runs make this a smoke test, not a statistic. If the agent doesn't follow the rules, the messages or the design change before release.
 
+The eval runs in two stages:
+
+| Stage | Scores | Needs |
+|---|---|---|
+| **Compliance** (built) | `owned check` at 0 errors, 0 warnings and 0 `unsafe`; all five routes present; each one `auth: 'user'` with an `owner`; `owned.config.ts`, `tsconfig.json`, `package.json`, `AGENTS.md` and `CLAUDE.md` untouched; no direct `zod` imports | `owned check` |
+| **Ownership** | hidden HTTP tests with two users, `owned` vs plain Hono | the runtime |
+
+The compliance stage runs first because it tests the riskiest premise, that the agent follows the rules, before the runtime is built.
+
 Before v1 ships there will also be an example app with three planted bugs (a delete without an owner check, a `passwordHash` in an output, an owner id taken from the body), plus an end-to-end test that runs two real users against it.
 
 ---

@@ -105,3 +105,42 @@ Type behavior is pinned by `test/types.test.ts`. It compiles `test/types/positiv
 | `write.ts` | Writes each file with flag `wx`. Existing files are skipped and never overwritten, so running `init` twice ends in the same state. |
 
 The generated `owned.config.ts` authenticates from `x-user-id` and `x-user-role` only when `NODE_ENV=test`, and returns `null` otherwise. The safe default is that nobody is logged in until real authentication is written. The end-to-end test generates a project, adds every `AGENTS.md` template as a route, and requires `owned check` (including `tsc`) to report 0 errors and 0 warnings.
+
+## Agent eval (`evals/`)
+
+`npm run eval` checks the core premise: does an agent that has only `AGENTS.md` write routes that pass the contract without escape hatches?
+
+```
+ for each run:
+   fresh temp project (owned init, owned/typescript/@types/node linked, git baseline commit)
+     │
+     ▼
+   agent.run(project, PROMPT)      the prompt describes only the feature and never mentions owned
+     │
+     ▼
+   owned check --json  +  git status (touched files)  +  direct zod imports
+     │
+     ▼
+   scoreRun ──► PASS / FAIL with reasons
+ gate: passed runs ≥ 2/3
+```
+
+| Module | Responsibility |
+|---|---|
+| `agent-crud/spec.ts` | The prompt, the five expected routes, and the protected files. |
+| `agent-crud/score.ts` | Pure scoring. Path param names are normalized, so `:id` and `:commentId` both match. |
+| `agent-crud/agents.ts` | `claudeAgent` and `fakeAgent`. `claudeArgs` is pure and pins the sandbox flags. |
+| `agent-crud/project.ts` | Creates the project, reads git status, finds direct `zod` imports, runs `owned check --json`. |
+| `agent-crud/run.ts` | Runs N times, cleans up (unless `--keep`), and applies the gate. |
+| `agent-crud/main.ts` | Argument parsing and the summary. `evals/agent-crud.ts` is the entry point. |
+
+The claude agent runs `claude -p` with:
+- `--setting-sources project` (no user hooks or settings);
+- `--strict-mcp-config` (no MCP servers);
+- `--no-session-persistence`;
+- `--max-budget-usd` per run;
+- `--allowedTools Read Write Edit Glob Grep "Bash(npx owned check:*)"`.
+
+It never runs with bypassed permissions. The prompt goes after `--`, so it can't be read as a flag. A run has a 20-minute limit through `AbortSignal.timeout`. `spawn`'s own `timeout` option isn't used, because it leaves a timer alive when `claude` is missing, which kept the process from exiting. User-level memory files such as `~/.claude/CLAUDE.md` may still load, and results should be read with that in mind.
+
+A `fake` agent copies a known solution into the project, so the harness itself is tested without spending tokens. The test fixtures are a compliant solution, a public `GET /comments` (it passes `owned check` and fails the eval), and a tampered `owned.config.ts`.
