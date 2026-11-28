@@ -30,7 +30,8 @@
   ],
   "scripts": {
     "test": "node --test \"test/**/*.test.ts\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "eval": "node evals/agent-crud.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.7",

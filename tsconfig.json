@@ -22,7 +22,8 @@
   "include": [
     "src",
     "test",
-    "bin"
+    "bin",
+    "evals"
   ],
   "exclude": [
     "test/fixtures",
